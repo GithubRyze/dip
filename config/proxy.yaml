@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Proxy
+spec:
+  # /ectcm/test -> https://ewell.com/test
+  - namespace: dev
+    name: http_proxy_extract
+    serviceName: ectcm
+    path: /ectcm/test
+    pathType: Extract
+    upstream:
+      serviceName: ewell
+      endpoint: "https://ewell.com/test"
+    tag:
+      label: dev
+  # /ectcm/test/s001 -> https://ewell.com/ectcm/test/s001
+  - namespace: dev
+    name: http_proxy_prefix
+    serviceName: ectcm
+    path: /ectcm/
+    pathType: Prefix
+    upstream:
+      serviceName: ewell
+      endpoint: "https://ewell.com/"
+    tag:
+      label: dev
+
+

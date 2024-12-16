@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: WorkFlow
+spec:
+  - namespace: dev
+    serviceName: ehrss
+    name: flow_1
+    trigger:
+      type: https
+      endpoint: /workflow/dev/test
+    executions:
+      - type: dip/flow/cloverleaf
+        name: cloverleaf
+        serviceName: cloverleaf
+        endpoint: "https://www.example.com/test"
+        tags:
+          label: cloverleaf_test
+      - type: dip/flow/https
+        name: https
+        serviceName: ewell
+        endpoint: "https://www.example.com/test"
+        tags:
+          label: https_test
+
