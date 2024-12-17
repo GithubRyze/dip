@@ -9,18 +9,18 @@ import (
 )
 
 type DipProxy struct {
-	Namespace   string            `json:"namespace" yaml:"namespace"`
-	Name        string            `json:"name" yaml:"name"`
-	ServiceName string            `json:"serviceName" yaml:"serviceName"`
-	Path        string            `json:"path" yaml:"path"`
-	PathType    string            `json:"pathType" yaml:"pathType"`
-	Tag         map[string]string `json:"tag" yaml:"tag"`
+	Namespace   string
+	Name        string
+	ServiceName string
+	Path        string
+	PathType    string
+	Tag         map[string]string
 	Upstream    Upstream
 }
 
 type Upstream struct {
-	ServiceName string `json:"serviceName" yaml:"serviceName"`
-	Endpoint    string `json:"endpoint" yaml:"endpoint"`
+	ServiceName string
+	Endpoint    string
 }
 
 var (
@@ -28,16 +28,15 @@ var (
 	ExtractPathType = "Extract"
 )
 
-type DipProxyContext struct {
+type dipProxyTransport struct {
+	proxyLogger    *logger.ProxyLogger
+	SourceUrl      string
+	TargetUrl      string
+	SourceServicer string
+	TargetServicer string
 }
 
-type DipProxyTransport struct {
-	proxyLogger *logger.ProxyLogger
-	sourceUrl   string
-	targetUrl   string
-}
-
-func (transport DipProxyTransport) RoundTrip(r *http.Request) (*http.Response, error) {
+func (transport dipProxyTransport) RoundTrip(r *http.Request) (*http.Response, error) {
 	start := time.Now()
 	requestDump, err := httputil.DumpRequestOut(r, true)
 	if err != nil {
@@ -56,8 +55,8 @@ func (transport DipProxyTransport) RoundTrip(r *http.Request) (*http.Response, e
 		Timestamp:    time.Now(),
 		ClientIP:     r.RemoteAddr,
 		Method:       r.Method,
-		Path:         transport.sourceUrl,
-		ProxyTarget:  transport.targetUrl,
+		SourcePath:   transport.SourceUrl,
+		TargetPath:   transport.TargetUrl,
 		RequestBody:  string(requestDump),
 		ResponseBody: string(responseDump),
 		StatusCode:   response.StatusCode,
@@ -79,8 +78,12 @@ func (dipProxy *DipProxy) DoProxy(requestPath string, proxyLogger *logger.ProxyL
 		return nil, parseUrlError
 	}
 	reverseProxy := httputil.NewSingleHostReverseProxy(targetUrl)
-	reverseProxy.Transport = DipProxyTransport{
-		proxyLogger: proxyLogger,
+	reverseProxy.Transport = dipProxyTransport{
+		proxyLogger:    proxyLogger,
+		SourceUrl:      requestPath,
+		TargetUrl:      targetUrl.Scheme + "://" + targetUrl.Host + targetUrl.Path,
+		SourceServicer: dipProxy.ServiceName,
+		TargetServicer: dipProxy.Upstream.ServiceName,
 	}
 	return reverseProxy, nil
 }

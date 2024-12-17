@@ -6,15 +6,17 @@ import (
 )
 
 type ProxyLog struct {
-	Timestamp    time.Time
-	ClientIP     string
-	Method       string
-	Path         string
-	ProxyTarget  string
-	RequestBody  string
-	ResponseBody string
-	StatusCode   int
-	Latency      time.Duration
+	Timestamp      time.Time
+	ClientIP       string
+	Method         string
+	SourceServicer string
+	SourcePath     string
+	TargetServicer string
+	TargetPath     string
+	RequestBody    string
+	ResponseBody   string
+	StatusCode     int
+	Latency        time.Duration
 }
 
 // Logger 异步日志处理器
@@ -51,9 +53,9 @@ func (l *ProxyLogger) run() {
 		case entry := <-l.logChan:
 			// 处理日志
 			log.Printf(
-				"[%s] Client: %s | Method: %s | Path: %s | ProxyTarget: %s | Status: %d | Latency: %s | RequestBody: %s | ResponseBody: %s\n",
+				"[%s] Client: %s | Method: %s | SourcePath: %s | TargetPath: %s | Status: %d | Latency: %s | RequestBody: %s | ResponseBody: %s\n",
 				entry.Timestamp.Format(time.RFC3339),
-				entry.ClientIP, entry.Method, entry.Path, entry.ProxyTarget, entry.StatusCode,
+				entry.ClientIP, entry.Method, entry.SourcePath, entry.TargetPath, entry.StatusCode,
 				entry.Latency, entry.RequestBody, entry.ResponseBody,
 			)
 		case <-l.stopChan:
