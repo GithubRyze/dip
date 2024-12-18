@@ -1,6 +1,7 @@
 package proxy
 
 import (
+	"dip/bootstrap/dip_logger"
 	"dip/internal/logger"
 	"net/http"
 	"net/http/httputil"
@@ -40,15 +41,17 @@ func (transport dipProxyTransport) RoundTrip(r *http.Request) (*http.Response, e
 	start := time.Now()
 	requestDump, err := httputil.DumpRequestOut(r, true)
 	if err != nil {
+		dip_logger.Errorf("DumpRequestOut error: %s", err.Error())
 		return nil, err
 	}
 	response, err := http.DefaultTransport.RoundTrip(r)
 	if err != nil {
+		dip_logger.Errorf("RoundTrip error: %s", err.Error())
 		return nil, err
 	}
 	responseDump, err := httputil.DumpResponse(response, true)
 	if err != nil {
-		// copying the response body did not work
+		dip_logger.Errorf("DumpResponse error: %s", err.Error())
 		return nil, err
 	}
 	transport.proxyLogger.Log(logger.ProxyLog{

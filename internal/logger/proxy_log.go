@@ -1,7 +1,7 @@
 package logger
 
 import (
-	"log"
+	"dip/bootstrap/dip_logger"
 	"time"
 )
 
@@ -42,13 +42,13 @@ func (l *ProxyLogger) Close() {
 func (l *ProxyLogger) run() {
 
 	for entry := range l.logChan {
-		log.Printf(
+		dip_logger.Infof(
 			"[%s] Client: %s | Method: %s | SourcePath: %s | TargetPath: %s | Status: %d | Latency: %s | RequestBody: %s | ResponseBody: %s\n",
 			entry.Timestamp.Format(time.RFC3339),
 			entry.ClientIP, entry.Method, entry.SourcePath, entry.TargetPath, entry.StatusCode,
 			entry.Latency, entry.RequestBody, entry.ResponseBody,
 		)
 	}
-	log.Print("logChan closed, stopping logger\n")
+	dip_logger.Infof("logChan closed, stopping logger\n")
 
 }

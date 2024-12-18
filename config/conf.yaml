@@ -1,0 +1,7 @@
+env: dev
+applicationName: dip
+logLevel: info
+loggerPath: var/dip/logs/
+webPort: 8080
+endpointTlsPort: 8443
+endpointPort: 9090
