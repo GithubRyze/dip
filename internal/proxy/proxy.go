@@ -24,8 +24,8 @@ type Upstream struct {
 }
 
 var (
-	PrefixPathType  = "Prefix"
-	ExtractPathType = "Extract"
+	PrefixPathType = "Prefix"
+	ExactPathType  = "Exact"
 )
 
 type dipProxyTransport struct {
@@ -66,14 +66,7 @@ func (transport dipProxyTransport) RoundTrip(r *http.Request) (*http.Response, e
 }
 
 func (dipProxy *DipProxy) DoProxy(requestPath string, proxyLogger *logger.ProxyLogger) (*httputil.ReverseProxy, error) {
-	var targetUrl *url.URL
-	var parseUrlError error
-	if dipProxy.PathType == ExtractPathType {
-		targetUrl, parseUrlError = url.Parse(dipProxy.Upstream.Endpoint)
-	}
-	if dipProxy.PathType == PrefixPathType {
-		targetUrl, parseUrlError = url.Parse(dipProxy.Upstream.Endpoint + requestPath)
-	}
+	targetUrl, parseUrlError := url.Parse(dipProxy.getTargetUrl(requestPath))
 	if parseUrlError != nil {
 		return nil, parseUrlError
 	}
@@ -86,4 +79,14 @@ func (dipProxy *DipProxy) DoProxy(requestPath string, proxyLogger *logger.ProxyL
 		TargetServicer: dipProxy.Upstream.ServiceName,
 	}
 	return reverseProxy, nil
+}
+
+func (dipProxy *DipProxy) getTargetUrl(requestPath string) string {
+	if dipProxy.PathType == ExactPathType {
+		return dipProxy.Upstream.Endpoint
+	}
+	if dipProxy.PathType == PrefixPathType {
+		return dipProxy.Upstream.Endpoint + requestPath
+	}
+	return ""
 }
